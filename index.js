@@ -1,12 +1,13 @@
 var express = require('express');
 var app = express();
+var cors = require('cors');
 var bodyParser = require('body-parser');
 var mysql      = require('mysql');
 var dbconfig = require('./config/database');
 
 app.set('port', (process.env.PORT || 5000));
 app.use(bodyParser.json());
-
+app.use(cors());
 // test app running
 app.get('/', function(req, res) {
     res.send("Medicool server is running");
@@ -16,7 +17,19 @@ app.get('/', function(req, res) {
 app.get('/showmedicines',function(req,res) {
   var connection = mysql.createConnection(dbconfig.connection);
   connection.query('USE ' + dbconfig.database);
-  connection.query('SELECT * FROM `medicines_t`', function (error, results, fields) {
+  connection.query('SELECT m_id, m_name, m_photo FROM `medicines_t`', function (error, results, fields) {
+    if (error) throw error;
+    console.log('The solution is: ', results);
+    res.send(results);
+  });
+  connection.end();
+});
+
+// showallPharmacies
+app.get('/showallPharmacies',function(req,res) {
+  var connection = mysql.createConnection(dbconfig.connection);
+  connection.query('USE ' + dbconfig.database);
+  connection.query('SELECT * FROM `pharmacies_t`', function (error, results, fields) {
     if (error) throw error;
     console.log('The solution is: ', results);
     res.send(results);
@@ -28,23 +41,52 @@ app.get('/showmedicines',function(req,res) {
 app.post('/search_medicine', function(req, res) {
   var connection = mysql.createConnection(dbconfig.connection);
   connection.query('USE ' + dbconfig.database);
-  connection.query('SELECT * FROM `medicines_t`', function (error, results, fields) {
+  connection.query('SELECT `m_id`,`p_city`,`p_name`,`p_logo`,`m_name`,`med_price`,`m_general_desc`,`m_rating`,`med_q` FROM `buy_med_t` JOIN `pharmacies_t` JOIN `medicines_t` on buy_med_t.fk_p_id=pharmacies_t.p_id;', function (error, results, fields) {
     if (error) throw error;
     var drug = results.find(function(element){
-        return (element.m_name === req.body.searchText && element.m_availability === req.body.searchCity)
+        console.log(req.body.searchText);
+        console.log(req.body.searchCity);
+        return (element.m_name === req.body.searchText && element.p_city === req.body.searchCity)
     });
+
+    console.log(drug);
 
     if(drug !== undefined)
     {
-        return res.json(drug);
+        return res.send(drug);
     }
     else
     {
-        return res.sendStatus(401);
+        return res.sendStatus(204);
     }
   });
   connection.end();
   });
+
+  // search medicine by ID
+  app.post('/search_medicine_by_id', function(req, res) {
+    var connection = mysql.createConnection(dbconfig.connection);
+    connection.query('USE ' + dbconfig.database);
+    connection.query('SELECT * FROM `medicines_t`', function (error, results, fields) {
+      if (error) throw error;
+      var drug = results.find(function(element){
+          console.log(req.body.searchId);
+          return (element.m_id === req.body.searchId)
+      });
+
+      console.log(drug);
+
+      if(drug !== undefined)
+      {
+          return res.send(drug);
+      }
+      else
+      {
+          return res.sendStatus(204);
+      }
+    });
+    connection.end();
+    });
 
 app.listen(app.get('port'), function() {
     console.log('Node app is running on port', app.get('port'));

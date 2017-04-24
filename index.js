@@ -41,21 +41,21 @@ app.get('/showallPharmacies',function(req,res) {
 app.post('/search_medicine', function(req, res) {
   var connection = mysql.createConnection(dbconfig.connection);
   connection.query('USE ' + dbconfig.database);
-  connection.query('SELECT `m_id`,`p_city`,`p_name`,`p_logo`,`m_name`,`med_price`,`m_general_desc`,`m_rating`,`med_q` FROM `buy_med_t` JOIN `pharmacies_t` JOIN `medicines_t` on buy_med_t.fk_p_id=pharmacies_t.p_id;', function (error, results, fields) {
+  connection.query('SELECT `m_id`,`p_city`,`p_name`,`p_logo`,`med_name`,`med_price`,`m_general_desc`,`m_rating`,`med_q` FROM `buy_med_t` JOIN `pharmacies_t` JOIN `medicines_t` on buy_med_t.med_id=medicines_t.m_id;', function (error, results, fields) {
     if (error) throw error;
-    var drug = results.find(function(element){
-        console.log(req.body.searchText);
-        console.log(req.body.searchCity);
-        return (element.m_name === req.body.searchText && element.p_city === req.body.searchCity)
-    });
-
-    console.log(drug);
-
-    if(drug !== undefined)
-    {
-        return res.send(drug);
+    console.log(results);
+    var founddrugs = [];
+    for (var i = 0; i < results.length; i++) {
+      if (results[i].med_name === req.body.searchText && results[i].p_city === req.body.searchCity) {
+        founddrugs.push(results[i]);
+      }
     }
-    else
+    console.log(founddrugs);
+    if(founddrugs.length !== 0)
+    {
+        return res.send(founddrugs);
+    }
+    else if (founddrugs.length === 0)
     {
         return res.sendStatus(204);
     }

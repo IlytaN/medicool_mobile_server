@@ -41,7 +41,7 @@ app.get('/showallPharmacies',function(req,res) {
 app.post('/search_medicine', function(req, res) {
   var connection = mysql.createConnection(dbconfig.connection);
   connection.query('USE ' + dbconfig.database);
-  connection.query('SELECT `m_id`,`p_city`,`p_name`,`p_logo`,`med_name`,`med_price`,`m_general_desc`,`m_rating`,`med_q` FROM `buy_med_t` JOIN `pharmacies_t` JOIN `medicines_t` on buy_med_t.med_id=medicines_t.m_id;', function (error, results, fields) {
+  connection.query('SELECT * FROM `buy_med_t` JOIN `pharmacies_t` on buy_med_t.fk_p_id=pharmacies_t.p_id;', function (error, results, fields) {
     if (error) throw error;
     console.log(results);
     var founddrugs = [];
@@ -62,7 +62,7 @@ app.post('/search_medicine', function(req, res) {
   });
   connection.end();
   });
-
+  
   // search medicine by ID
   app.post('/search_medicine_by_id', function(req, res) {
     var connection = mysql.createConnection(dbconfig.connection);

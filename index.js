@@ -43,14 +43,12 @@ app.post('/search_medicine', function(req, res) {
   connection.query('USE ' + dbconfig.database);
   connection.query('SELECT * FROM `buy_med_t` JOIN `pharmacies_t` on buy_med_t.fk_p_id=pharmacies_t.p_id;', function (error, results, fields) {
     if (error) throw error;
-    console.log(results);
     var founddrugs = [];
     for (var i = 0; i < results.length; i++) {
       if (results[i].med_name === req.body.searchText && results[i].p_city === req.body.searchCity) {
         founddrugs.push(results[i]);
       }
     }
-    console.log(founddrugs);
     if(founddrugs.length !== 0)
     {
         return res.send(founddrugs);
@@ -62,7 +60,26 @@ app.post('/search_medicine', function(req, res) {
   });
   connection.end();
   });
-  
+
+  // search medicine info
+  app.post('/search_medicine_info', function(req, res) {
+    var connection = mysql.createConnection(dbconfig.connection);
+    connection.query('USE ' + dbconfig.database);
+    connection.query('SELECT * FROM `medicines_t` WHERE medicines_t.m_name="'+req.body.searchText+'";', function (error, results, fields) {
+      if (error) throw error;
+      console.log(results);
+      if(results !== undefined)
+      {
+          return res.send(results);
+      }
+      else if (results === undefined)
+      {
+          return res.sendStatus(204);
+      }
+    });
+    connection.end();
+    });
+
   // search medicine by ID
   app.post('/search_medicine_by_id', function(req, res) {
     var connection = mysql.createConnection(dbconfig.connection);
